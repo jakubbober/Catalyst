@@ -1,4 +1,4 @@
-#region LICENSE
+﻿#region LICENSE
 
 /**
 * Copyright (c) 2019 Catalyst Network
@@ -21,25 +21,16 @@
 
 #endregion
 
-using System.Diagnostics;
 using Catalyst.Abstractions.Cryptography;
+using Nethermind.Core;
+using Nethermind.Core.Crypto;
+using Nethermind.Core.Extensions;
 
-namespace Catalyst.Core.Modules.Cryptography.BulletProofs.Types
+namespace Catalyst.Core.Modules.Kvm
 {
-    [DebuggerDisplay("{System.Convert.ToBase64String(Bytes)}")]
-    public class PublicKey : IPublicKey
+    public static class PublicKeyExtensions
     {
-        public byte[] Bytes { get; }
-
-        internal PublicKey(byte[] publicKey)
-        {
-            var requiredLength = NativeBinding.PublicKeyLength;
-            if (publicKey.Length != requiredLength)
-            {
-                Error.ThrowArgumentExceptionPublicKeyLength(requiredLength);
-            }
-
-            Bytes = publicKey;
-        }
+        public static Address ToKvmAddress(this IPublicKey publicKey) => 
+            new Address(ValueKeccak.Compute(publicKey.Bytes).BytesAsSpan.SliceWithZeroPadding(0, 20).ToArray());
     }
 }

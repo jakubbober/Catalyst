@@ -21,25 +21,16 @@
 
 #endregion
 
-using System.Diagnostics;
-using Catalyst.Abstractions.Cryptography;
+using Catalyst.Protocol.Deltas;
+using Nethermind.Core;
+using Nethermind.Evm.Tracing;
 
-namespace Catalyst.Core.Modules.Cryptography.BulletProofs.Types
+namespace Catalyst.Core.Modules.Kvm
 {
-    [DebuggerDisplay("{System.Convert.ToBase64String(Bytes)}")]
-    public class PublicKey : IPublicKey
+    public interface IDeltaExecutor
     {
-        public byte[] Bytes { get; }
-
-        internal PublicKey(byte[] publicKey)
-        {
-            var requiredLength = NativeBinding.PublicKeyLength;
-            if (publicKey.Length != requiredLength)
-            {
-                Error.ThrowArgumentExceptionPublicKeyLength(requiredLength);
-            }
-
-            Bytes = publicKey;
-        }
+        void Execute(Delta delta, ITxTracer txTracer);
+        
+        void CallAndRestore(Delta delta, ITxTracer txTracer);
     }
 }
