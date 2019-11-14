@@ -72,7 +72,7 @@ namespace Catalyst.Core.Modules.Web3.Controllers
         [HttpGet("{publicKey}")]
         public JsonResult GetTransactionsByPublickey(string publicKey)
         {
-            var contractEntries = _mempoolRepository.AsQueryable().Select(item=>item).SelectMany(item => item.ContractEntries.Where(contractEntry => contractEntry.Base.ReceiverPublicKey == publicKey).Select(contractEntry => item))
+            var contractEntries = _mempoolRepository.AsQueryable().Select(item=>item).SelectMany(item => item.ContractEntries.Where(contractEntry => contractEntry.Base.ReceiverPublicKey == publicKey.ToLowerInvariant()).Select(contractEntry => item))
                 .ToList();
 
             return Json(contractEntries, new JsonSerializerSettings

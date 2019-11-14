@@ -70,7 +70,6 @@ namespace Catalyst.Core.Modules.Web3.Controllers
                 using (var fullContentStream = await _dfs.ReadAsync(latest))
                 {
                     var contentBytes = await fullContentStream.ReadAllBytesAsync(CancellationToken.None);
-                    var d = Delta.Parser.ParseFrom(contentBytes);
                     var delta = Delta.Parser.ParseFrom(contentBytes).ToDao<Delta, DeltaDao>(_mapperProvider);
 
                     return Json(new
