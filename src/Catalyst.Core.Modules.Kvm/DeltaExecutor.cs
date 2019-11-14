@@ -24,6 +24,7 @@
 using System;
 using System.Linq;
 using Catalyst.Abstractions.Cryptography;
+using Catalyst.Abstractions.Kvm;
 using Catalyst.Core.Lib.Extensions;
 using Catalyst.Core.Modules.Cryptography.BulletProofs;
 using Catalyst.Protocol.Deltas;
@@ -51,30 +52,33 @@ namespace Catalyst.Core.Modules.Kvm
     /// </summary>
     public class DeltaExecutor : IDeltaExecutor
     {
-        private readonly ICryptoContext _cryptoContext = new FfiWrapper();
+        private readonly ICryptoContext _cryptoContext;
         private readonly ILogger _logger;
         private readonly ISpecProvider _specProvider;
         private readonly IStateProvider _stateProvider;
         private readonly IStorageProvider _storageProvider;
-        private readonly IVirtualMachine _virtualMachine;
+        private readonly IKvm _virtualMachine;
 
         /// <summary>
         ///     Note that there is a distinct approach to state and storage even as only together they form the 'state'
         ///     in the business sense. <see cref="IStorageProvider" /> needs to handle storage trees for various accounts
         ///     while <see cref="IStateProvider" /> handles the basic accounts state with storage roots only.
         /// </summary>
+        /// <param name="cryptoContext"></param>
         /// <param name="specProvider">The network upgrade spec - defines the virtual machine version.</param>
         /// <param name="stateProvider">Access to accounts.</param>
         /// <param name="storageProvider">Access to accounts' storage.</param>
         /// <param name="virtualMachine">A virtual machine to execute the code on.</param>
         /// <param name="logger">Logger for the execution details.</param>
-        public DeltaExecutor(ISpecProvider specProvider,
+        public DeltaExecutor(ICryptoContext cryptoContext,
+            ISpecProvider specProvider,
             IStateProvider stateProvider,
             IStorageProvider storageProvider,
-            IVirtualMachine virtualMachine,
+            IKvm virtualMachine,
             ILogger logger)
         {
             _logger = logger;
+            _cryptoContext = cryptoContext;
             _specProvider = specProvider;
             _virtualMachine = virtualMachine;
             _stateProvider = stateProvider;
@@ -151,7 +155,7 @@ namespace Catalyst.Core.Modules.Kvm
         private static void QuickFail(ContractEntry entry, ExecutionEnvironment env, ITxTracer txTracer)
         {
             // here we need to propagate back to Delta
-            env.CurrentBlock.GasUsed += (long) entry.GasLimit;
+            //env.CurrentBlock.GasUsed += (long) entry.GasLimit;
             if (txTracer.IsTracingReceipt)
             {
                 txTracer.MarkAsFailed(env.ExecutingAccount, (long) entry.GasLimit, Bytes.Empty, "invalid");

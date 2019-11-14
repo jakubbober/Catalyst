@@ -21,11 +21,17 @@
 
 #endregion
 
+using System;
 using System.Linq;
+using Catalyst.Abstractions.IO.Events;
 using Catalyst.Abstractions.Mempool.Repositories;
 using Catalyst.Core.Lib.DAO;
+using Catalyst.Core.Lib.Extensions;
 using Catalyst.Core.Lib.Util;
 using Catalyst.Core.Modules.Mempool.Repositories;
+using Catalyst.Modules.Repository.CosmosDb;
+using Catalyst.Protocol.Wire;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using BaseController = Microsoft.AspNetCore.Mvc.Controller;
@@ -37,10 +43,14 @@ namespace Catalyst.Core.Modules.Web3.Controllers
     public sealed class MempoolController : BaseController
     {
         private readonly MempoolRepository _mempoolRepository;
+        private readonly ITransactionReceivedEvent _transactionReceivedEvent;
+        private readonly IMapperProvider _mapperProvider;
 
-        public MempoolController(IMempoolRepository<TransactionBroadcastDao> mempoolRepository)
+        public MempoolController(IMempoolRepository<TransactionBroadcastDao> mempoolRepository, ITransactionReceivedEvent transactionReceivedEvent, IMapperProvider mapperProvider)
         {
-            _mempoolRepository = (MempoolRepository) mempoolRepository;
+            _mempoolRepository = (MempoolRepository)mempoolRepository;
+            _transactionReceivedEvent = transactionReceivedEvent;
+            _mapperProvider = mapperProvider;
         }
 
         [HttpGet("{id}")]
@@ -57,6 +67,36 @@ namespace Catalyst.Core.Modules.Web3.Controllers
             {
                 Converters = JsonConverterProviders.Converters.ToList()
             });
+        }
+
+        [HttpGet("{publicKey}")]
+        public JsonResult GetTransactionsByPublickey(string publicKey)
+        {
+            var contractEntries = _mempoolRepository.AsQueryable().Select(item=>item).SelectMany(item => item.ContractEntries.Where(contractEntry => contractEntry.Base.ReceiverPublicKey == publicKey).Select(contractEntry => item))
+                .ToList();
+
+            return Json(contractEntries, new JsonSerializerSettings
+            {
+                Converters = JsonConverterProviders.Converters.ToList()
+            });
+        }
+
+        [HttpPost]
+        public JsonResult AddTransaction(string transactionBroadcastProtocolBase64)
+        {
+            try
+            {
+                var transactionBroadcastProtocolMessageBytes =
+                    Convert.FromBase64String(transactionBroadcastProtocolBase64);
+                var transactionBroadcastProtocolMessage =
+                    ProtocolMessage.Parser.ParseFrom((transactionBroadcastProtocolMessageBytes));
+                _transactionReceivedEvent.OnTransactionReceived(transactionBroadcastProtocolMessage);
+                return Json(new { Success = true });
+            }
+            catch (Exception exc)
+            {
+                return Json(new { Success = false, exc.Message });
+            }
         }
     }
 }

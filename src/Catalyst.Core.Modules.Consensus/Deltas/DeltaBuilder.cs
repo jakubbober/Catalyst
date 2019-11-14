@@ -217,7 +217,7 @@ namespace Catalyst.Core.Modules.Consensus.Deltas
         {
             //lock time equals 0 or less than ledger cycle time
             //we assume all transactions are of type non-confidential for now
-
+            return allTransactions;
             List<TransactionBroadcast> validTransactionsForDelta = new List<TransactionBroadcast>();
             List<TransactionBroadcast> rejectedTransactions = new List<TransactionBroadcast>();
 

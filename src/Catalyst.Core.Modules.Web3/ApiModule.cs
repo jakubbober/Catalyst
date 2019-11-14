@@ -30,9 +30,11 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Catalyst.Abstractions.Consensus.Deltas;
 using Catalyst.Abstractions.Dfs;
+using Catalyst.Abstractions.IO.Events;
 using Catalyst.Abstractions.Mempool;
 using Catalyst.Abstractions.Mempool.Repositories;
 using Catalyst.Core.Lib.DAO;
+using Catalyst.Core.Modules.Ledger.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -109,6 +111,10 @@ namespace Catalyst.Core.Modules.Web3
             builder.RegisterInstance(_container.Resolve<IMempool<TransactionBroadcastDao>>())
                .As<IMempool<TransactionBroadcastDao>>().SingleInstance();
 
+
+            builder.RegisterInstance(_container.Resolve<ITransactionReceivedEvent>())
+                .As<ITransactionReceivedEvent>()
+                .SingleInstance();
 
             builder.RegisterInstance(_container.Resolve<IDeltaHashProvider>())
                 .As<IDeltaHashProvider>()
