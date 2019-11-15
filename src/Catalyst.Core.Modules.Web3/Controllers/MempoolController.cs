@@ -30,6 +30,7 @@ using Catalyst.Core.Lib.Extensions;
 using Catalyst.Core.Lib.Util;
 using Catalyst.Core.Modules.Mempool.Repositories;
 using Catalyst.Modules.Repository.CosmosDb;
+using Catalyst.Protocol.Rpc.Node;
 using Catalyst.Protocol.Wire;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Mvc;
@@ -90,8 +91,8 @@ namespace Catalyst.Core.Modules.Web3.Controllers
                     Convert.FromBase64String(transactionBroadcastProtocolBase64);
                 var transactionBroadcastProtocolMessage =
                     ProtocolMessage.Parser.ParseFrom((transactionBroadcastProtocolMessageBytes));
-                _transactionReceivedEvent.OnTransactionReceived(transactionBroadcastProtocolMessage);
-                return Json(new { Success = true });
+                var response = _transactionReceivedEvent.OnTransactionReceived(transactionBroadcastProtocolMessage);
+                return Json(new { Success = response == ResponseCode.Successful });
             }
             catch (Exception exc)
             {
