@@ -73,7 +73,7 @@ namespace Catalyst.Core.Modules.Web3.Controllers
         [HttpGet("{publicKey}")]
         public JsonResult GetTransactionsByPublickey(string publicKey)
         {
-            var contractEntries = _mempoolRepository.AsQueryable().Select(item=>item).SelectMany(item => item.ContractEntries.Where(contractEntry => contractEntry.Base.ReceiverPublicKey == publicKey.ToLowerInvariant()).Select(contractEntry => item))
+            var contractEntries = _mempoolRepository.AsQueryable().Select(item => item).SelectMany(item => item.ContractEntries.Where(contractEntry => contractEntry.Base.ReceiverPublicKey == publicKey.ToLowerInvariant()).Select(contractEntry => item))
                 .ToList();
 
             return Json(contractEntries, new JsonSerializerSettings
@@ -83,7 +83,7 @@ namespace Catalyst.Core.Modules.Web3.Controllers
         }
 
         [HttpPost]
-        public JsonResult AddTransaction(string transactionBroadcastProtocolBase64)
+        public IActionResult AddTransaction(string transactionBroadcastProtocolBase64)
         {
             try
             {
@@ -92,11 +92,17 @@ namespace Catalyst.Core.Modules.Web3.Controllers
                 var transactionBroadcastProtocolMessage =
                     ProtocolMessage.Parser.ParseFrom((transactionBroadcastProtocolMessageBytes));
                 var response = _transactionReceivedEvent.OnTransactionReceived(transactionBroadcastProtocolMessage);
-                return Json(new { Success = response == ResponseCode.Successful });
+
+                if (response == ResponseCode.Successful)
+                {
+                    return Ok();
+                }
+
+                return UnprocessableEntity();
             }
             catch (Exception exc)
             {
-                return Json(new { Success = false, exc.Message });
+                return UnprocessableEntity();
             }
         }
     }
