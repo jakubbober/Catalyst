@@ -86,7 +86,9 @@ namespace Catalyst.Core.Modules.Sync.Watcher
 
         private int GetPageCount()
         {
-            var peerCount = _peerRepository.Count();
+            //Only POA nodes for now
+            var peerCount = _peerRepository.GetActivePoaPeers().Count();
+            //var peerCount = _peerRepository.Count();
             if (peerCount == 0)
             {
                 return 1;
@@ -129,7 +131,9 @@ namespace Catalyst.Core.Modules.Sync.Watcher
             var totalPages = GetPageCount();
             _page %= totalPages;
             _page++;
-            var peers = DeltaHeightRanker.GetPeers().Union(_peerRepository.TakeHighestReputationPeers(_page, _peersPerCycle).Select(x => x.PeerId));
+            //Only POA nodes for now
+            var peers = _peerRepository.GetActivePoaPeers().Select(x => x.PeerId);
+            //var peers = DeltaHeightRanker.GetPeers().Union(_peerRepository.TakeHighestReputationPeers(_page, _peersPerCycle).Select(x => x.PeerId));
             _peerClient.SendMessageToPeers(new LatestDeltaHashRequest(), peers);
 
             if (_page >= totalPages && DeltaHeightRanker.GetPeers().Count() >= _minimumPeers)
