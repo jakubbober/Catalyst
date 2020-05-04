@@ -133,6 +133,8 @@ namespace Catalyst.TestUtils
             var inMemoryStore = new InMemoryStore<string, EncryptedKey>();
             ContainerBuilder.RegisterInstance(inMemoryStore).As<IStore<string, EncryptedKey>>().SingleInstance();
 
+
+
             ConfigureLogging(writeLogsToTestOutput, writeLogsToFile, logDotNettyTraffic);
         }
 

@@ -48,8 +48,6 @@ using Catalyst.Core.Modules.KeySigner;
 using Catalyst.Core.Modules.Keystore;
 using Catalyst.TestUtils;
 using FluentAssertions;
-using Lib.P2P;
-using MultiFormats;
 using NSubstitute;
 using NUnit.Framework;
 using Serilog;

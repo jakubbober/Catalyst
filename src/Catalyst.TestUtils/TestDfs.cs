@@ -32,6 +32,7 @@ using Catalyst.Abstractions.Keystore;
 using Catalyst.Abstractions.Options;
 using Catalyst.Core.Lib;
 using Catalyst.Core.Lib.Cryptography;
+using Catalyst.Core.Lib.P2P.Models;
 using Catalyst.Core.Modules.Dfs;
 using Catalyst.Core.Modules.Dfs.Migration;
 using Catalyst.Core.Modules.Hashing;
@@ -40,6 +41,8 @@ using Catalyst.TestUtils;
 using MultiFormats.Registry;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using SharpRepository.InMemoryRepository;
+using SharpRepository.Repository;
 
 namespace Catalyst.TestUtils
 {
@@ -74,6 +77,8 @@ namespace Catalyst.TestUtils
             {
                 containerBuilder.RegisterType<KeyChainOptions>().SingleInstance().WithProperty("DefaultKeyType", keyType);
             }
+            containerBuilder.RegisterType<DiscoveryOptions>().SingleInstance().WithProperty("DisableMdns", false).WithProperty("UsePeerRepository", false);
+            containerBuilder.RegisterType<InMemoryRepository<Peer, string>>().As<IRepository<Peer, string>>();
 
             var container = containerBuilder.Build();
             var scope = container.BeginLifetimeScope(nodeGuid);

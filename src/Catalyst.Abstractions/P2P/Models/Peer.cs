@@ -40,6 +40,10 @@ namespace Catalyst.Core.Lib.P2P.Models
         /// <inheritdoc />
         public PeerId PeerId { get; set; }
 
+        /// <inheritdoc />
+        public string MultiAddress { set; get; }
+
+        /// <inheritdoc />
         public bool IsPoaNode { set; get; }
 
         /// <inheritdoc />

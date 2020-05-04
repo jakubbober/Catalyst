@@ -58,6 +58,11 @@ namespace Catalyst.Abstractions.Options
         /// </summary>
         public bool DisableRandomWalk { set; get; }
 
+        /// <summary>
+        ///   Use PeerRepository for discovery instead of bootstrap.
+        /// </summary>
+        public bool UsePeerRepository { set; get; }
+
         public DiscoveryOptions(){}
     }
 }

@@ -46,6 +46,14 @@ namespace Catalyst.Abstractions.P2P.Models
         /// <value>The peer identifier.</value>
         PeerId PeerId { get; }
 
+        /// <summary>Gets the multiaddress.</summary>
+        /// <value>The multiaddress.</value>
+        public string MultiAddress { get; }
+
+        /// <summary> String in multiaddress format.</summary>
+        /// <value>To connecto to remote nodes.</value>
+        public bool IsPoaNode { set; get; }
+
         /// <summary>Gets a value indicating whether this instance is awol peer.</summary>
         /// <value><c>true</c> if this instance is awol peer; otherwise, <c>false</c>.</value>
         bool IsAwolPeer { get; }

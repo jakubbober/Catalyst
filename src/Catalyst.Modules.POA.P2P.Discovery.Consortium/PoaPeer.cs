@@ -38,6 +38,8 @@ namespace Catalyst.Modules.POA.P2P
 
         public string PublicKey { get; set; }
 
+        public string MultiAddress { get; set; }
+
         public PeerId ToPeerId()
         {
             return new PeerId

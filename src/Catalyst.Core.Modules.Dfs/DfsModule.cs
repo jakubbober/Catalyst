@@ -23,6 +23,7 @@
 
 using System.Reflection;
 using Autofac;
+using Autofac.Core;
 using Catalyst.Abstractions.Consensus.Deltas;
 using Catalyst.Abstractions.Cryptography;
 using Catalyst.Abstractions.Dfs;
@@ -131,7 +132,7 @@ namespace Catalyst.Core.Modules.Dfs
             builder.RegisterType<RepositoryOptions>().SingleInstance()
                .WithParameter("dfsDirectory", Constants.DfsDataSubDir);
             //Disable Mdns in dfs as it causes a memoryleak/outofmemory exception
-            builder.RegisterType<DiscoveryOptions>().SingleInstance().WithProperty("DisableMdns", true);
+            builder.RegisterType<DiscoveryOptions>().SingleInstance().WithProperty("DisableMdns", true).WithProperty("UsePeerRepository", true);
             builder.RegisterType<KeyChainOptions>().SingleInstance().WithProperty("DefaultKeyType", "ed25519");
             builder.RegisterType<SwarmOptions>().SingleInstance();
         }

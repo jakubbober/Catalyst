@@ -66,6 +66,7 @@ namespace Catalyst.Core.Modules.Dfs
         /// <seealso cref="StartAsync" />
         public bool IsStarted => _stopTasks.Count > 0;
 
+        private IPeerRepository _peerRepository;
         private readonly DfsState _dfsState;
         private readonly IHashProvider _hashProvider;
         private ConcurrentBag<Func<Task>> _stopTasks = new ConcurrentBag<Func<Task>>();
@@ -96,6 +97,7 @@ namespace Catalyst.Core.Modules.Dfs
             DfsState dfsState,
             IPasswordManager passwordManager,
             IMigrationManager migrationManager,
+            IPeerRepository peerRepository,
             Peer localPeer)
         {
             BitSwapApi = bitSwapApi;
@@ -123,6 +125,7 @@ namespace Catalyst.Core.Modules.Dfs
             _dfsState = dfsState;
             DnsApi = dnsApi;
             MigrationManager = migrationManager;
+            _peerRepository = peerRepository;
             LocalPeer = localPeer;
 
             InitAsync().Wait();
@@ -280,10 +283,14 @@ namespace Catalyst.Core.Modules.Dfs
                 // Bootstrap discovery
                 async () =>
                 {
-                    var bootstrap = new Bootstrap
-                    {
-                        Addresses = await BootstrapApi.ListAsync()
-                    };
+                    var bootstrap = new Bootstrap();
+                    if(Options.Discovery.UsePeerRepository){
+                        bootstrap.Addresses =_peerRepository.GetAll().Select(x => new MultiAddress(x.MultiAddress));
+                    }
+                    else{
+                        bootstrap.Addresses = await BootstrapApi.ListAsync();
+                    }
+
                     bootstrap.PeerDiscovered += OnPeerDiscovered;
                     _stopTasks.Add(async () => await bootstrap.StopAsync().ConfigureAwait(false));
                     await bootstrap.StartAsync().ConfigureAwait(false);
@@ -383,6 +390,18 @@ namespace Catalyst.Core.Modules.Dfs
         {
             try
             {
+                if (Options.Discovery.UsePeerRepository)
+                {
+                    var exists = _peerRepository.GetAll().Where(x => x.MultiAddress == peer.ConnectedAddress.ToString());
+                    if (exists != null)
+                    {
+                        var peerInfo = new Lib.P2P.Models.Peer
+                        {
+                            MultiAddress = peer.ConnectedAddress.ToString()
+                        };
+                        _peerRepository.Add(peerInfo);
+                    }
+                }
                 SwarmService.RegisterPeer(peer);
             }
             catch (Exception ex)

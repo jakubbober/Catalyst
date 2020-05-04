@@ -78,6 +78,7 @@ namespace Catalyst.Modules.POA.P2P.Discovery
             foreach (var peer in poaPeers.Select(poaPeer => new Peer
             {
                 IsPoaNode = true,
+                MultiAddress = poaPeer.MultiAddress,
                 PeerId = poaPeer.ToPeerId()
             }))
             {
