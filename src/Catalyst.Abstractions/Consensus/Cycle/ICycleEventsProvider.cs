@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Catalyst.Abstractions.Consensus.Cycle
 {
@@ -46,6 +47,16 @@ namespace Catalyst.Abstractions.Consensus.Cycle
         /// </summary>
         /// <returns>A TimeSpan representing the time to wait until next delta production cycle starts.</returns>
         TimeSpan GetTimeSpanUntilNextCycleStart();
+
+        /// <summary>
+        /// Use this method to start the cycle event provider
+        /// </summary>
+        Task StartAync();
+
+        /// <summary>
+        /// Use this method to stop the cycle event provider
+        /// </summary>
+        Task StopAsync();
 
         /// <summary>
         /// Terminate the emission of state changes events on the <see cref="PhaseChanges"/> stream

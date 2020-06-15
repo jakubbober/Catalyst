@@ -39,7 +39,7 @@ using MultiFormats.Registry;
 using NSubstitute;
 using Serilog;
 using NUnit.Framework;
-
+using Catalyst.Core.Abstractions.Sync;
 
 namespace Catalyst.Core.Modules.Consensus.Tests.UnitTests.Cycle
 {
@@ -80,7 +80,9 @@ namespace Catalyst.Core.Modules.Consensus.Tests.UnitTests.Cycle
 
             _dateTimeProvider.UtcNow.Returns(_ => _testScheduler.Now.DateTime);
             _cycleProvider = new CycleEventsProvider(CycleConfiguration.Default, _dateTimeProvider, _schedulerProvider,
-                _deltaHashProvider, new Abstractions.Sync.SyncState() { IsSynchronized = true }, _logger);
+                _deltaHashProvider, new SyncState { IsSynchronized = true }, _logger);
+
+            _cycleProvider.StartAync().ConfigureAwait(false).GetAwaiter().GetResult();
 
             _spy = Substitute.For<IObserver<IPhase>>();
 
@@ -180,8 +182,10 @@ namespace Catalyst.Core.Modules.Consensus.Tests.UnitTests.Cycle
 
             var spy2 = Substitute.For<IObserver<IPhase>>();
             using (var cycleProvider2 = new CycleEventsProvider(CycleConfiguration.Default, _dateTimeProvider,
-                _schedulerProvider, _deltaHashProvider, new Abstractions.Sync.SyncState() { IsSynchronized = true }, _logger))
-            using (cycleProvider2.PhaseChanges.Take(50 - PhaseCountPerCycle)
+                _schedulerProvider, _deltaHashProvider, new SyncState { IsSynchronized = true }, _logger))
+            {
+                cycleProvider2.StartAync().ConfigureAwait(false).GetAwaiter().GetResult();
+                using (cycleProvider2.PhaseChanges.Take(50 - PhaseCountPerCycle)
                .Subscribe(p =>
                 {
                     TestContext.WriteLine(
@@ -195,30 +199,31 @@ namespace Catalyst.Core.Modules.Consensus.Tests.UnitTests.Cycle
                         $"% 2 -- completed after {_stopWatch.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture):g}");
                     spy2.OnCompleted();
                 }))
-            {
-                _testScheduler.Start();
-
-                _spy.Received(1).OnCompleted();
-                spy2.Received(1).OnCompleted();
-
-                var receivedPhases = GetReceivedPhases(_spy);
-                receivedPhases.Count.Should().Be(50);
-
-                var receivedPhases2 = GetReceivedPhases(spy2);
-                receivedPhases2.Count.Should().Be(50 - PhaseCountPerCycle);
-
-                (receivedPhases2.First().UtcStartTime - receivedPhases.First().UtcStartTime)
-                   .TotalMilliseconds.Should().BeApproximately(
-                        CycleConfiguration.Default.CycleDuration.TotalMilliseconds, 0.0002d,
-                        "the provider should start on the second cycle");
-
-                foreach (var phases in receivedPhases.Skip(PhaseCountPerCycle)
-                   .Zip(receivedPhases2, (a, b) => new Tuple<IPhase, IPhase>(a, b)))
                 {
-                    (phases.Item1.UtcStartTime - phases.Item2.UtcStartTime).TotalMilliseconds
-                       .Should().BeApproximately(0, 0.0001d, "phases should be in sync");
-                    phases.Item1.Name.Should().Be(phases.Item2.Name);
-                    phases.Item1.Status.Should().Be(phases.Item1.Status);
+                    _testScheduler.Start();
+
+                    _spy.Received(1).OnCompleted();
+                    spy2.Received(1).OnCompleted();
+
+                    var receivedPhases = GetReceivedPhases(_spy);
+                    receivedPhases.Count.Should().Be(50);
+
+                    var receivedPhases2 = GetReceivedPhases(spy2);
+                    receivedPhases2.Count.Should().Be(50 - PhaseCountPerCycle);
+
+                    (receivedPhases2.First().UtcStartTime - receivedPhases.First().UtcStartTime)
+                       .TotalMilliseconds.Should().BeApproximately(
+                            CycleConfiguration.Default.CycleDuration.TotalMilliseconds, 0.0002d,
+                            "the provider should start on the second cycle");
+
+                    foreach (var phases in receivedPhases.Skip(PhaseCountPerCycle)
+                       .Zip(receivedPhases2, (a, b) => new Tuple<IPhase, IPhase>(a, b)))
+                    {
+                        (phases.Item1.UtcStartTime - phases.Item2.UtcStartTime).TotalMilliseconds
+                           .Should().BeApproximately(0, 0.0001d, "phases should be in sync");
+                        phases.Item1.Name.Should().Be(phases.Item2.Name);
+                        phases.Item1.Status.Should().Be(phases.Item1.Status);
+                    }
                 }
             }
         }
