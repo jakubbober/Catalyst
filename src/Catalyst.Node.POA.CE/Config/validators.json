@@ -1,0 +1,11 @@
+{
+    "multi": {
+        "0": {
+            "list": [ "/ip4/77.68.110.78/tcp/4001/ipfs/18n3naE9kBZoVvgYMV6saMZe3GsQiDaWiuhi4ngsz4yYghzBZanWyrCCxbg3QWZmWCK3" ]
+        },
+        "900": {
+            "contract": "0x79dd7e4c1b9adb07f71b54dba2d54db2fa549de3"
+        }
+    }
+}
+
